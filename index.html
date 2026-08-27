@@ -20,10 +20,40 @@
   <!-- Estilos del tema -->
   <link rel="stylesheet" href="css/public.css">
 
+  <style>
+    #page-loader {
+      position: fixed;
+      inset: 0;
+      z-index: 999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background-color: var(--bg-color, #0b0b0f);
+      transition: opacity 0.35s ease;
+    }
+    #page-loader .spinner {
+      width: 34px;
+      height: 34px;
+      border-radius: 9999px;
+      border: 3px solid rgba(255, 255, 255, 0.15);
+      border-top-color: var(--primary-color, #7c3aed);
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    #view-public {
+      opacity: 0;
+      transition: opacity 0.4s ease;
+    }
+    #view-public.ready { opacity: 1; }
+  </style>
+
   <!-- Supabase JS -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body class="min-h-screen flex flex-col justify-between selection:bg-purple-600 selection:text-white">
+
+  <!-- Loader mientras se cargan los datos reales desde Supabase -->
+  <div id="page-loader"><div class="spinner"></div></div>
 
   <!-- Fondo dinámico -->
   <div id="dynamic-bg-container" class="dynamic-bg-wrapper">
@@ -37,26 +67,22 @@
     <section class="text-center flex flex-col items-center mb-6">
       <div class="relative mb-4 group">
         <img id="public-avatar"
-             src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=300&q=80"
+             src=""
              alt="Foto de perfil"
              class="profile-avatar-frame object-cover shadow-2xl glow-pulse">
       </div>
 
       <h2 id="public-name" class="font-bold tracking-tight text-white flex items-center justify-center gap-2" style="font-size: var(--name-size);">
-        JSantacruz
+        <span></span>
         <i id="public-verified-icon" class="fa-solid fa-circle-check text-base" style="color: var(--verified-badge);" title="Verificado"></i>
       </h2>
-      <p id="public-bio" class="text-slate-300 text-sm mt-1.5 max-w-xs leading-relaxed" style="font-size: var(--bio-size);">
-        Creador de Contenido & Desarrollador.
-      </p>
+      <p id="public-bio" class="text-slate-300 text-sm mt-1.5 max-w-xs leading-relaxed" style="font-size: var(--bio-size);"></p>
 
       <div id="public-socials" class="flex flex-wrap justify-center gap-3 mt-5"></div>
     </section>
 
     <!-- Categorías y enlaces -->
-    <div id="public-content" class="space-y-6 flex-1">
-      <p class="public-state-msg">Cargando...</p>
-    </div>
+    <div id="public-content" class="space-y-6 flex-1"></div>
 
     <footer class="mt-12 pt-6 text-center text-xs text-slate-400 border-t border-white/5 space-y-1">
       <p>© <span id="year-span"></span> JSantacruz. Todos los derechos reservados.</p>
