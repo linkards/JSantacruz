@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="es" class="h-full dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JSantacruz | Enlaces</title>
+  <meta name="description" content="Redes sociales, proyectos y recursos de JSantacruz.">
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <!-- Estilos del tema -->
+  <link rel="stylesheet" href="css/public.css">
+
+  <!-- Supabase JS -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="min-h-screen flex flex-col justify-between selection:bg-purple-600 selection:text-white">
+
+  <!-- Fondo dinámico -->
+  <div id="dynamic-bg-container" class="dynamic-bg-wrapper">
+    <div id="bg-layer" class="dynamic-bg-gradient"></div>
+    <div id="bg-overlay-layer" class="dynamic-bg-overlay"></div>
+  </div>
+
+  <main id="view-public" class="w-full max-w-md mx-auto px-4 py-8 flex-1 flex flex-col">
+
+    <!-- Perfil -->
+    <section class="text-center flex flex-col items-center mb-6">
+      <div class="relative mb-4 group">
+        <img id="public-avatar"
+             src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=300&q=80"
+             alt="Foto de perfil"
+             class="profile-avatar-frame object-cover shadow-2xl glow-pulse">
+      </div>
+
+      <h2 id="public-name" class="font-bold tracking-tight text-white flex items-center justify-center gap-2" style="font-size: var(--name-size);">
+        JSantacruz
+        <i id="public-verified-icon" class="fa-solid fa-circle-check text-base" style="color: var(--verified-badge);" title="Verificado"></i>
+      </h2>
+      <p id="public-bio" class="text-slate-300 text-sm mt-1.5 max-w-xs leading-relaxed" style="font-size: var(--bio-size);">
+        Creador de Contenido & Desarrollador.
+      </p>
+
+      <div id="public-socials" class="flex flex-wrap justify-center gap-3 mt-5"></div>
+    </section>
+
+    <!-- Categorías y enlaces -->
+    <div id="public-content" class="space-y-6 flex-1">
+      <p class="public-state-msg">Cargando...</p>
+    </div>
+
+    <footer class="mt-12 pt-6 text-center text-xs text-slate-400 border-t border-white/5 space-y-1">
+      <p>© <span id="year-span"></span> JSantacruz. Todos los derechos reservados.</p>
+    </footer>
+
+  </main>
+
+  <script src="js/supabaseClient.js"></script>
+  <script src="js/theme-engine.js"></script>
+  <script src="js/public.js"></script>
+</body>
+</html>

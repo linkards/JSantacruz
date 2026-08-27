@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="es" class="h-full dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Panel Admin</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@400;600;700;800&family=Plus+Jakarta+Sans:wght@400;600;700;800&family=Poppins:wght@400;600;700&family=Space+Grotesk:wght@400;600;700&family=Fira+Code:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <link rel="stylesheet" href="css/public.css">
+  <link rel="stylesheet" href="css/admin.css">
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="admin-body">
+
+  <div id="admin-toast-container" class="admin-toast-container"></div>
+
+  <!-- ================= LOGIN ================= -->
+  <div id="view-login" class="hidden min-h-screen flex items-center justify-center p-4">
+    <div class="w-full max-w-sm bg-slate-900 border border-slate-800 rounded-3xl p-6 space-y-4">
+      <div class="text-center space-y-1">
+        <div class="w-10 h-10 rounded-xl bg-purple-600 flex items-center justify-center font-black text-white text-sm mx-auto">JS</div>
+        <h1 class="font-bold text-white">Panel Administrativo</h1>
+        <p class="text-xs text-slate-400">Acceso exclusivo del propietario</p>
+      </div>
+      <form id="login-form" class="space-y-3">
+        <div>
+          <label class="block text-xs text-slate-400 mb-1">Correo</label>
+          <input type="email" id="login-email" required class="admin-input" placeholder="tucorreo@ejemplo.com">
+        </div>
+        <div>
+          <label class="block text-xs text-slate-400 mb-1">Contraseña</label>
+          <input type="password" id="login-password" required class="admin-input" placeholder="••••••••">
+        </div>
+        <p id="login-error" class="hidden text-xs text-red-400"></p>
+        <button id="login-submit-btn" type="submit" class="w-full py-2.5 bg-purple-600 hover:bg-purple-500 text-white rounded-xl text-sm font-semibold transition">Iniciar sesión</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ================= NO AUTORIZADO ================= -->
+  <div id="view-denied" class="hidden min-h-screen flex items-center justify-center p-4">
+    <div class="w-full max-w-sm bg-slate-900 border border-slate-800 rounded-3xl p-6 space-y-4 text-center">
+      <i class="fa-solid fa-lock text-3xl text-red-400"></i>
+      <h1 class="font-bold text-white">Acceso no autorizado</h1>
+      <p class="text-xs text-slate-400">Esta cuenta no tiene permisos de administrador.</p>
+      <button id="denied-logout-btn" class="w-full py-2.5 bg-slate-800 hover:bg-slate-700 text-white rounded-xl text-sm font-semibold transition">Cerrar sesión</button>
+    </div>
+  </div>
+
+  <!-- ================= PANEL ================= -->
+  <div id="view-panel" class="hidden w-full min-h-screen flex flex-col">
+
+    <header class="w-full border-b border-white/10 bg-slate-950/70 backdrop-blur-md sticky top-0 z-40 px-4 py-3 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-8 h-8 rounded-xl bg-purple-600 flex items-center justify-center font-black text-white text-sm">JS</div>
+        <h1 class="font-bold text-sm text-white">Panel Admin</h1>
+      </div>
+      <div class="flex items-center gap-1.5 bg-slate-900/90 p-1 rounded-xl border border-white/10">
+        <button id="nav-tab-content" onclick="setAdminTab('content')" class="px-3 py-1.5 rounded-lg text-xs font-medium text-white bg-purple-600 transition flex items-center gap-1.5">
+          <i class="fa-solid fa-bars-progress"></i> <span class="hidden sm:inline">Contenido</span>
+        </button>
+        <button id="nav-tab-design" onclick="setAdminTab('design')" class="px-3 py-1.5 rounded-lg text-xs font-medium text-slate-300 hover:text-white transition flex items-center gap-1.5">
+          <i class="fa-solid fa-palette"></i> <span class="hidden sm:inline">Diseño</span>
+        </button>
+        <button id="logout-btn" class="px-3 py-1.5 rounded-lg text-xs font-medium text-slate-300 hover:text-red-400 transition flex items-center gap-1.5" title="Cerrar sesión">
+          <i class="fa-solid fa-right-from-bracket"></i>
+        </button>
+      </div>
+    </header>
+
+    <div class="flex-1 w-full max-w-2xl mx-auto p-4 lg:p-6">
+
+      <!-- ============ TAB: CONTENIDO ============ -->
+      <div id="tab-content" class="space-y-6">
+
+        <!-- Perfil -->
+        <div class="bg-slate-900/90 border border-slate-800 p-4 rounded-2xl space-y-3">
+          <h2 class="font-bold text-slate-100 text-sm">Perfil</h2>
+          <div class="flex items-center gap-4">
+            <img id="profile-avatar-preview" class="w-16 h-16 rounded-full object-cover border border-slate-700" alt="Avatar">
+            <label class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl text-xs font-medium cursor-pointer">
+              Cambiar foto
+              <input type="file" accept="image/*" class="hidden" onchange="handleAvatarUpload(event)">
+            </label>
+          </div>
+          <form onsubmit="handleSaveProfile(event)" class="space-y-2">
+            <div>
+              <label class="block text-xs text-slate-400 mb-1">Nombre</label>
+              <input type="text" id="profile-name-input" class="admin-input" required>
+            </div>
+            <div>
+              <label class="block text-xs text-slate-400 mb-1">Biografía</label>
+              <input type="text" id="profile-bio-input" class="admin-input">
+            </div>
+            <button type="submit" class="px-4 py-2 bg-purple-600 hover:bg-purple-500 text-white rounded-xl text-xs font-semibold">Guardar perfil</button>
+          </form>
+        </div>
+
+        <!-- Enlaces -->
+        <div class="bg-slate-900/90 border border-slate-800 p-4 rounded-2xl flex justify-between items-center">
+          <div>
+            <h2 class="font-bold text-slate-100 text-sm">Enlaces</h2>
+            <p class="text-xs text-slate-400">Administra tus enlaces y categorías</p>
+          </div>
+          <button onclick="openLinkModal()" class="px-3.5 py-2 bg-purple-600 hover:bg-purple-500 text-white text-xs font-semibold rounded-xl transition flex items-center gap-1.5">
+            <i class="fa-solid fa-plus"></i> Nuevo
+          </button>
+        </div>
+        <div class="space-y-3">
+          <div class="flex justify-between items-center">
+            <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider">Tus Enlaces</h3>
+            <button onclick="openCategoryModal()" class="text-xs text-purple-400 hover:text-purple-300 font-medium transition">+ Administrar Categorías</button>
+          </div>
+          <div id="admin-links-list" class="space-y-2.5"></div>
+        </div>
+
+        <!-- Redes Sociales -->
+        <div class="bg-slate-900/90 border border-slate-800 p-4 rounded-2xl space-y-4">
+          <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+            <div>
+              <h3 class="text-xs font-bold text-slate-200 uppercase tracking-wider">Redes Sociales</h3>
+              <p class="text-[11px] text-slate-400">Iconos mostrados en tu perfil</p>
+            </div>
+            <button onclick="openSocialModal()" class="px-3 py-1.5 bg-purple-600 hover:bg-purple-500 text-white text-xs font-semibold rounded-xl transition flex items-center gap-1.5">
+              <i class="fa-solid fa-plus"></i> Nueva
+            </button>
+          </div>
+          <div id="admin-socials-list" class="space-y-2"></div>
+        </div>
+      </div>
+
+      <!-- ============ TAB: DISEÑO ============ -->
+      <div id="tab-design" class="hidden space-y-6">
+
+        <div class="flex items-center justify-between">
+          <h2 class="text-lg font-bold text-white flex items-center gap-2"><i class="fa-solid fa-wand-magic-sparkles text-purple-400"></i> Estudio de Diseño</h2>
+          <button onclick="handleSaveTheme()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5">
+            <i class="fa-solid fa-floppy-disk"></i> Guardar cambios
+          </button>
+        </div>
+
+        <!-- Vista previa -->
+        <div class="w-full border-8 border-slate-800 rounded-[32px] shadow-2xl overflow-hidden min-h-[500px] relative bg-slate-950" id="studio-frame-wrapper">
+          <div id="studio-preview-frame" class="w-full h-full p-4 overflow-y-auto relative"></div>
+        </div>
+
+        <!-- Presets -->
+        <div class="space-y-2 bg-slate-950/60 p-4 rounded-2xl border border-slate-800">
+          <label class="block text-xs font-extrabold text-purple-400 uppercase tracking-wider">1. Presets / Temas Listos</label>
+          <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 pt-1" id="presets-grid"></div>
+        </div>
+
+        <!-- Avatar -->
+        <div class="space-y-3 bg-slate-950/40 p-4 rounded-2xl border border-slate-800">
+          <h3 class="text-xs font-extrabold text-white uppercase tracking-wider">Avatar & Foto de Perfil</h3>
+          <div class="grid grid-cols-2 gap-2">
+            <button type="button" onclick="updateStudioVar('avatar-radius', '9999px')" class="py-2 text-xs font-medium bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl border border-slate-700">Círculo</button>
+            <button type="button" onclick="updateStudioVar('avatar-radius', '24px')" class="py-2 text-xs font-medium bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl border border-slate-700">Cuadrado Suave</button>
+          </div>
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block text-[11px] text-slate-400 mb-1">Color de Borde</label>
+              <input type="color" id="picker-avatar-border" oninput="updateStudioVar('avatar-border-color', this.value)" class="w-full h-8 rounded border-0 cursor-pointer bg-transparent">
+            </div>
+            <div>
+              <label class="block text-[11px] text-slate-400 mb-1">Color de Resplandor</label>
+              <input type="color" id="picker-avatar-glow" oninput="updateStudioVar('avatar-glow-color', this.value)" class="w-full h-8 rounded border-0 cursor-pointer bg-transparent">
+            </div>
+          </div>
+        </div>
+
+        <!-- Tipografía -->
+        <div class="space-y-3 bg-slate-950/40 p-4 rounded-2xl border border-slate-800">
+          <h3 class="text-xs font-extrabold text-white uppercase tracking-wider">Tipografía</h3>
+          <select id="select-font-family" onchange="updateStudioVar('font-family', this.value)" class="admin-input">
+            <option value="'Inter', sans-serif">Inter (Moderna)</option>
+            <option value="'Outfit', sans-serif">Outfit (Geométrica)</option>
+            <option value="'Plus Jakarta Sans', sans-serif">Plus Jakarta Sans</option>
+            <option value="'Poppins', sans-serif">Poppins (Redondeada)</option>
+            <option value="'Space Grotesk', sans-serif">Space Grotesk (Tech)</option>
+            <option value="'Fira Code', monospace">Fira Code (Dev)</option>
+          </select>
+          <div class="grid grid-cols-3 gap-2 pt-1">
+            <div>
+              <label class="block text-[10px] text-slate-400 mb-1">Color Nombre</label>
+              <input type="color" id="picker-text-name" oninput="updateStudioVar('text-main', this.value)" class="w-full h-8 rounded border-0 cursor-pointer bg-transparent">
+            </div>
+            <div>
+              <label class="block text-[10px] text-slate-400 mb-1">Color Bio</label>
+              <input type="color" id="picker-text-bio" oninput="updateStudioVar('text-muted', this.value)" class="w-full h-8 rounded border-0 cursor-pointer bg-transparent">
+            </div>
+            <div>
+              <label class="block text-[10px] text-slate-400 mb-1">Icono Verificado</label>
+              <input type="color" id="picker-verified-icon" oninput="updateStudioVar('verified-badge', this.value)" class="w-full h-8 rounded border-0 cursor-pointer bg-transparent">
+            </div>
+          </div>
+        </div>
+
+        <!-- Redes sociales -->
+        <div class="space-y-3 bg-slate-950/40 p-4 rounded-2xl border border-slate-800">
+          <h3 class="text-xs font-extrabold text-white uppercase tracking-wider">Iconos de Redes Sociales</h3>
+          <div class="grid grid-cols-3 gap-2">
+            <div>
+              <label class="block text-[10px] text-slate-400 mb-1">Color de Iconos</label>
+              <input type="color" id="picker-social-icon" oninput="updateStudioVar('social-icon-color', this.value)" class="w-full h-8 rounded border-0 cursor-pointer bg-transparent">
+            </div>
+            <div>
+              <label class="block text-[10px] text-slate-400 mb-1">Fondo de Botón</label>
+              <input type="color" id="picker-social-bg" oninput="updateStudioVar('social-bg-color', this.value)" class="w-full h-8 rounded border-0 cursor-pointer bg-transparent">
+            </div>
+            <div>
+              <label class="block text-[10px] text-slate-400 mb-1">Borde de Botón</label>
+              <input type="color" id="picker-social-border" oninput="updateStudioVar('social-border-color', this.value)" class="w-full h-8 rounded border-0 cursor-pointer bg-transparent">
+            </div>
+          </div>
+        </div>
+
+        <!-- Botones -->
+        <div class="space-y-3 bg-slate-950/40 p-4 rounded-2xl border border-slate-800">
+          <h3 class="text-xs font-extrabold text-white uppercase tracking-wider">Botones de Enlaces</h3>
+          <div class="grid grid-cols-3 gap-2">
+            <button type="button" onclick="applyButtonStylePreset('glass')" class="py-1.5 text-xs bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl border border-slate-700">Glass</button>
+            <button type="button" onclick="applyButtonStylePreset('solid')" class="py-1.5 text-xs bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl border border-slate-700">Sólido</button>
+            <button type="button" onclick="applyButtonStylePreset('outline')" class="py-1.5 text-xs bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl border border-slate-700">Outline</button>
+          </div>
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block text-[11px] text-slate-400 mb-1">Fondo Botón</label>
+              <input type="color" id="picker-btn-bg" oninput="updateStudioVar('btn-bg', this.value)" class="w-full h-8 rounded border-0 cursor-pointer bg-transparent">
+            </div>
+            <div>
+              <label class="block text-[11px] text-slate-400 mb-1">Texto Botón</label>
+              <input type="color" id="picker-btn-text" oninput="updateStudioVar('btn-text', this.value)" class="w-full h-8 rounded border-0 cursor-pointer bg-transparent">
+            </div>
+            <div>
+              <label class="block text-[11px] text-slate-400 mb-1">Borde Botón</label>
+              <input type="color" id="picker-btn-border" oninput="updateStudioVar('btn-border-color', this.value)" class="w-full h-8 rounded border-0 cursor-pointer bg-transparent">
+            </div>
+            <div>
+              <label class="block text-[11px] text-slate-400 mb-1">Hover (Brillo)</label>
+              <input type="color" id="picker-btn-hover" oninput="updateStudioVar('btn-hover-glow', this.value)" class="w-full h-8 rounded border-0 cursor-pointer bg-transparent">
+            </div>
+          </div>
+          <div>
+            <label class="block text-[11px] text-slate-400 mb-1">Radio de Bordes</label>
+            <input type="range" min="0" max="32" value="16" oninput="updateStudioVar('btn-radius', this.value + 'px')" class="w-full accent-purple-500">
+          </div>
+        </div>
+
+        <!-- Categorías -->
+        <div class="space-y-3 bg-slate-950/40 p-4 rounded-2xl border border-slate-800">
+          <h3 class="text-xs font-extrabold text-white uppercase tracking-wider">Categorías & Títulos</h3>
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block text-[11px] text-slate-400 mb-1">Color de Título</label>
+              <input type="color" id="picker-cat-color" oninput="updateStudioVar('cat-color', this.value)" class="w-full h-8 rounded border-0 cursor-pointer bg-transparent">
+            </div>
+            <div>
+              <label class="block text-[11px] text-slate-400 mb-1">Estilo de Texto</label>
+              <select id="select-cat-transform" onchange="updateStudioVar('cat-transform', this.value)" class="admin-input">
+                <option value="uppercase">MAYÚSCULAS</option>
+                <option value="capitalize">Capitalizado</option>
+                <option value="none">Normal</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- Destacados -->
+        <div class="space-y-3 bg-slate-950/40 p-4 rounded-2xl border border-slate-800">
+          <h3 class="text-xs font-extrabold text-white uppercase tracking-wider">Enlaces Destacados</h3>
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block text-[11px] text-slate-400 mb-1">Color Borde</label>
+              <input type="color" id="picker-featured-border" oninput="updateStudioVar('featured-border', this.value)" class="w-full h-8 rounded border-0 cursor-pointer bg-transparent">
+            </div>
+            <div>
+              <label class="block text-[11px] text-slate-400 mb-1">Color Badge</label>
+              <input type="color" id="picker-featured-badge" oninput="updateStudioVar('featured-badge-bg', this.value)" class="w-full h-8 rounded border-0 cursor-pointer bg-transparent">
+            </div>
+          </div>
+        </div>
+
+        <!-- Fondo -->
+        <div class="space-y-4 bg-slate-950/40 p-4 rounded-2xl border border-slate-800">
+          <h3 class="text-xs font-extrabold text-white uppercase tracking-wider">Fondo de Pantalla</h3>
+          <div class="grid grid-cols-3 gap-2">
+            <button type="button" onclick="updateStudioVar('bg-type', 'solid')" class="py-2 text-xs font-medium bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl border border-slate-700">Sólido</button>
+            <button type="button" onclick="updateStudioVar('bg-type', 'gradient')" class="py-2 text-xs font-medium bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl border border-slate-700">Gradiente</button>
+            <button type="button" onclick="updateStudioVar('bg-type', 'image')" class="py-2 text-xs font-medium bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl border border-slate-700">Imagen</button>
+          </div>
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block text-[11px] text-slate-400 mb-1">Color Base</label>
+              <input type="color" id="picker-bg-color" oninput="updateStudioVar('bg-color', this.value)" class="w-full h-8 rounded border-0 cursor-pointer bg-transparent">
+            </div>
+            <div>
+              <label class="block text-[11px] text-slate-400 mb-1">Color Superficie</label>
+              <input type="color" id="picker-surface-bg" oninput="updateStudioVar('surface-bg', this.value)" class="w-full h-8 rounded border-0 cursor-pointer bg-transparent">
+            </div>
+          </div>
+          <div class="space-y-3 p-3 bg-slate-950/60 rounded-2xl border border-slate-800">
+            <span class="text-[11px] font-semibold text-purple-400">Gradiente</span>
+            <div class="grid grid-cols-2 gap-3">
+              <div><label class="block text-[10px] text-slate-400 mb-1">Color Inicial</label><input type="color" id="picker-grad-1" oninput="updateStudioVar('bg-grad-1', this.value)" class="w-full h-8 rounded border-0 cursor-pointer bg-transparent"></div>
+              <div><label class="block text-[10px] text-slate-400 mb-1">Color Final</label><input type="color" id="picker-grad-2" oninput="updateStudioVar('bg-grad-2', this.value)" class="w-full h-8 rounded border-0 cursor-pointer bg-transparent"></div>
+            </div>
+            <div>
+              <label class="block text-[10px] text-slate-400 mb-1">Ángulo</label>
+              <input type="range" min="0" max="360" value="135" oninput="updateStudioVar('bg-grad-angle', this.value + 'deg')" class="w-full accent-purple-500">
+            </div>
+          </div>
+          <div class="space-y-3 p-3 bg-slate-950/60 rounded-2xl border border-slate-800">
+            <span class="text-[11px] font-semibold text-blue-400">Imagen de Fondo</span>
+            <label class="block w-full py-2 text-center bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl text-xs cursor-pointer">
+              Subir imagen
+              <input type="file" accept="image/*" class="hidden" onchange="handleBgImageUpload(event)">
+            </label>
+            <div>
+              <label class="block text-[10px] text-slate-400 mb-1">Opacidad Overlay</label>
+              <input type="range" min="0" max="100" value="35" oninput="updateStudioVar('bg-image-opacity', this.value / 100)" class="w-full accent-purple-500">
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= MODALS ================= -->
+  <div id="modal-link" class="admin-modal-backdrop hidden">
+    <div class="admin-modal space-y-4">
+      <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+        <h3 id="modal-link-title" class="font-bold text-white text-sm">Nuevo Enlace</h3>
+        <button onclick="closeLinkModal()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+      </div>
+      <form id="link-form" onsubmit="handleSaveLink(event)" class="space-y-3">
+        <input type="hidden" id="link-id">
+        <div><label class="block text-xs text-slate-400 mb-1">Título *</label><input type="text" id="link-title" required class="admin-input"></div>
+        <div><label class="block text-xs text-slate-400 mb-1">Descripción</label><input type="text" id="link-desc" class="admin-input"></div>
+        <div><label class="block text-xs text-slate-400 mb-1">URL *</label><input type="url" id="link-url" required class="admin-input font-mono"></div>
+        <div class="grid grid-cols-2 gap-2">
+          <div><label class="block text-xs text-slate-400 mb-1">Categoría *</label><select id="link-category" required class="admin-input"></select></div>
+          <div><label class="block text-xs text-slate-400 mb-1">Icono</label><input type="text" id="link-icon" placeholder="fa-download" class="admin-input"></div>
+        </div>
+        <div class="space-y-2 pt-1 border-t border-slate-800">
+          <label class="flex items-center gap-2 text-xs text-slate-300 cursor-pointer"><input type="checkbox" id="link-featured" class="w-4 h-4"><span class="font-bold text-amber-400">✨ Destacado</span></label>
+          <label class="flex items-center gap-2 text-xs text-slate-300 cursor-pointer"><input type="checkbox" id="link-active" checked class="w-4 h-4"><span>Activo (Visible)</span></label>
+        </div>
+        <div class="flex justify-end gap-2 pt-3 border-t border-slate-800">
+          <button type="button" onclick="closeLinkModal()" class="px-4 py-2 text-xs text-slate-400 hover:text-white">Cancelar</button>
+          <button type="submit" class="px-4 py-2 bg-purple-600 hover:bg-purple-500 text-white rounded-xl text-xs font-semibold">Guardar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="modal-cat" class="admin-modal-backdrop hidden">
+    <div class="admin-modal space-y-4">
+      <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+        <h3 id="modal-cat-title" class="font-bold text-white text-sm">Nueva Categoría</h3>
+        <button onclick="closeCategoryModal()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+      </div>
+      <form id="cat-form" onsubmit="handleSaveCategory(event)" class="space-y-3">
+        <input type="hidden" id="cat-id">
+        <div><label class="block text-xs text-slate-400 mb-1">Nombre *</label><input type="text" id="cat-name" required class="admin-input"></div>
+        <div class="flex justify-end gap-2 pt-2 border-t border-slate-800">
+          <button type="button" onclick="closeCategoryModal()" class="px-3 py-1.5 text-xs text-slate-400 hover:text-white">Cancelar</button>
+          <button type="submit" class="px-4 py-1.5 bg-purple-600 hover:bg-purple-500 text-white rounded-xl text-xs font-semibold">Guardar</button>
+        </div>
+      </form>
+      <div class="pt-3 border-t border-slate-800 space-y-2">
+        <h4 class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Categorías Existentes</h4>
+        <div id="cat-modal-list" class="space-y-1.5 max-h-40 overflow-y-auto pr-1"></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="modal-social" class="admin-modal-backdrop hidden">
+    <div class="admin-modal space-y-4">
+      <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+        <h3 id="modal-social-title" class="font-bold text-white text-sm">Nueva Red Social</h3>
+        <button onclick="closeSocialModal()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+      </div>
+      <form id="social-form" onsubmit="handleSaveSocial(event)" class="space-y-3">
+        <input type="hidden" id="social-id">
+        <div><label class="block text-xs text-slate-400 mb-1">Nombre *</label><input type="text" id="social-name" required class="admin-input"></div>
+        <div>
+          <label class="block text-xs text-slate-400 mb-1">Icono FontAwesome *</label>
+          <input type="text" id="social-icon" required placeholder="fa-tiktok" class="admin-input font-mono">
+          <div class="flex flex-wrap gap-1.5 mt-2">
+            <button type="button" onclick="setSocialIconPreset('TikTok', 'fa-tiktok')" class="px-2 py-1 bg-slate-950 hover:bg-slate-800 rounded border border-slate-800 text-[11px] text-slate-300"><i class="fa-brands fa-tiktok text-purple-400"></i> TikTok</button>
+            <button type="button" onclick="setSocialIconPreset('Instagram', 'fa-instagram')" class="px-2 py-1 bg-slate-950 hover:bg-slate-800 rounded border border-slate-800 text-[11px] text-slate-300"><i class="fa-brands fa-instagram text-pink-400"></i> Instagram</button>
+            <button type="button" onclick="setSocialIconPreset('YouTube', 'fa-youtube')" class="px-2 py-1 bg-slate-950 hover:bg-slate-800 rounded border border-slate-800 text-[11px] text-slate-300"><i class="fa-brands fa-youtube text-red-400"></i> YouTube</button>
+            <button type="button" onclick="setSocialIconPreset('GitHub', 'fa-github')" class="px-2 py-1 bg-slate-950 hover:bg-slate-800 rounded border border-slate-800 text-[11px] text-slate-300"><i class="fa-brands fa-github text-slate-300"></i> GitHub</button>
+            <button type="button" onclick="setSocialIconPreset('X / Twitter', 'fa-x-twitter')" class="px-2 py-1 bg-slate-950 hover:bg-slate-800 rounded border border-slate-800 text-[11px] text-slate-300"><i class="fa-brands fa-x-twitter text-slate-300"></i> X</button>
+            <button type="button" onclick="setSocialIconPreset('WhatsApp', 'fa-whatsapp')" class="px-2 py-1 bg-slate-950 hover:bg-slate-800 rounded border border-slate-800 text-[11px] text-slate-300"><i class="fa-brands fa-whatsapp text-emerald-400"></i> WhatsApp</button>
+          </div>
+        </div>
+        <div><label class="block text-xs text-slate-400 mb-1">URL *</label><input type="url" id="social-url" required class="admin-input font-mono"></div>
+        <label class="flex items-center gap-2 text-xs text-slate-300 cursor-pointer pt-1 border-t border-slate-800"><input type="checkbox" id="social-active" checked class="w-4 h-4"><span>Activa (Visible)</span></label>
+        <div class="flex justify-end gap-2 pt-3 border-t border-slate-800">
+          <button type="button" onclick="closeSocialModal()" class="px-4 py-2 text-xs text-slate-400 hover:text-white">Cancelar</button>
+          <button type="submit" class="px-4 py-2 bg-purple-600 hover:bg-purple-500 text-white rounded-xl text-xs font-semibold">Guardar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="js/supabaseClient.js"></script>
+  <script src="js/theme-engine.js"></script>
+  <script src="js/admin.js"></script>
+  <script src="js/auth.js"></script>
+</body>
+</html>
