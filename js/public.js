@@ -60,9 +60,12 @@ async function loadProfile() {
     const bioEl = document.getElementById('public-bio');
     const avatarEl = document.getElementById('public-avatar');
 
-    if (nameEl) nameEl.childNodes[0].nodeValue = (data.name || '') + ' ';
+    if (nameEl) {
+      const span = nameEl.querySelector('span');
+      if (span) span.textContent = data.name || '';
+    }
     if (bioEl) bioEl.textContent = data.bio || '';
-    if (avatarEl && data.avatar_url) avatarEl.src = data.avatar_url;
+    if (avatarEl) avatarEl.src = data.avatar_url || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=300&q=80';
   } catch (e) {
     // Se conserva el placeholder estático del HTML.
   }
@@ -173,8 +176,21 @@ async function loadCategoriesAndLinks() {
 
 async function initPublicPage() {
   document.getElementById('year-span').textContent = new Date().getFullYear();
-  await loadTheme();
-  await Promise.all([loadProfile(), loadSocials(), loadCategoriesAndLinks()]);
+
+  try {
+    await loadTheme();
+    await Promise.all([loadProfile(), loadSocials(), loadCategoriesAndLinks()]);
+  } finally {
+    // Se revela la página siempre, incluso si algo falló a medio camino
+    // (los propios loaders ya muestran su mensaje de error donde aplica).
+    const loader = document.getElementById('page-loader');
+    const view = document.getElementById('view-public');
+    view.classList.add('ready');
+    if (loader) {
+      loader.style.opacity = '0';
+      setTimeout(() => loader.remove(), 350);
+    }
+  }
 }
 
 window.addEventListener('DOMContentLoaded', initPublicPage);
