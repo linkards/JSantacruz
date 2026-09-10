@@ -1,0 +1,21 @@
+name: Supabase Keep-Alive
+
+on:
+  schedule:
+    # Todos los días a las 12:00 UTC (ajusta si quieres otra hora)
+    - cron: '0 12 * * *'
+  workflow_dispatch: {}   # permite ejecutarlo manualmente desde la pestaña Actions
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping proyecto multiusuario (linkards/im)
+        run: |
+          curl -sf -X POST "https://tgeadluxcghynlrwtsoq.supabase.co/functions/v1/keepalive" \
+            -H "Authorization: Bearer ${{ secrets.MULTIUSER_ANON_KEY }}"
+
+      - name: Ping proyecto personal
+        run: |
+          curl -sf -X POST "https://zccvxlodrcbrqheoqemg.supabase.co/functions/v1/keepalive" \
+            -H "Authorization: Bearer ${{ secrets.PERSONAL_ANON_KEY }}"
